@@ -17,7 +17,7 @@ RUF.utils = RUF.utils or {}
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_HEALTH")
-eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
+eventFrame:RegisterEvent("UNIT_MAXHEALTH")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 
 -- Reusable health bar update logic

@@ -259,9 +259,13 @@ function RUF:CreateOptionsMenu()
 				frame.healthText:Hide()
 
 				-- disable clicks
-				frame:EnableMouse(false)
-				portrait2DFrame:EnableMouse(false)
-				portraitContainer:EnableMouse(false)
+                                frame:EnableMouse(false)
+                                if frame.portrait2DFrame then
+                                        frame.portrait2DFrame:EnableMouse(false)
+                                end
+                                if frame.portraitContainer then
+                                        frame.portraitContainer:EnableMouse(false)
+                                end
 			else
 				frame.healthBar:Show()
 				frame.healthBarBG:Show()
