@@ -1,0 +1,11 @@
+## Interface: 100207
+## Title: RaphUnitFrames
+## Notes: Custom player and target unit frames
+## Author: RalphonzoMcGoo
+## Version: 1.0
+## SavedVariables: RUFDB
+
+Core.lua
+Menu.lua
+Player.lua
+Target.lua
