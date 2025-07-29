@@ -30,10 +30,12 @@ local defaultConfig = {
 		showHealthText = true,
 		use2DPortrait = true,
 		healthTextOffset = { x = 0, y = 0 },
-		portraitOffset = { x = 0, y = 0 },
-		hideHealthBar = false,
-		nameTextOffset = { x = 0, y = 0 },
-	},
+                portraitOffset = { x = 0, y = 0 },
+                hideHealthBar = false,
+                nameTextOffset = { x = 0, y = 0 },
+                castBarOffset = { x = 0, y = -10 },
+                castTextOffset = { x = 0, y = 0 },
+        },
 }
 
 -- Initialize SavedVariables
@@ -196,9 +198,35 @@ function RUF:CreateOptionsMenu()
 	portraitY:SetPoint("LEFT", portraitX, "RIGHT", 10, 0)
 	portraitY:SetAutoFocus(false)
 
-	local portraitLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	portraitLabel:SetPoint("RIGHT", portraitY, "RIGHT", 130, 0)
-	portraitLabel:SetText("Portrait Offset (x,y)")
+        local portraitLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        portraitLabel:SetPoint("RIGHT", portraitY, "RIGHT", 130, 0)
+        portraitLabel:SetText("Portrait Offset (x,y)")
+
+        -- Cast Bar Offset
+        local castBarX = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
+        castBarX:SetSize(40, 20)
+        castBarX:SetPoint("TOPLEFT", f, "TOPLEFT", 140, -400)
+        castBarX:SetAutoFocus(false)
+        local castBarY = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
+        castBarY:SetSize(40, 20)
+        castBarY:SetPoint("LEFT", castBarX, "RIGHT", 10, 0)
+        castBarY:SetAutoFocus(false)
+        local castBarLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        castBarLabel:SetPoint("RIGHT", castBarX, "RIGHT", 190, 0)
+        castBarLabel:SetText("Cast Bar Offset (x,y)")
+
+        -- Cast Text Offset
+        local castTextX = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
+        castTextX:SetSize(40, 20)
+        castTextX:SetPoint("TOPLEFT", f, "TOPLEFT", 140, -430)
+        castTextX:SetAutoFocus(false)
+        local castTextY = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
+        castTextY:SetSize(40, 20)
+        castTextY:SetPoint("LEFT", castTextX, "RIGHT", 10, 0)
+        castTextY:SetAutoFocus(false)
+        local castTextLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        castTextLabel:SetPoint("RIGHT", castTextX, "RIGHT", 197, 0)
+        castTextLabel:SetText("Cast Text Offset (x,y)")
 
 	-- Apply
 	local apply = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
@@ -224,11 +252,19 @@ function RUF:CreateOptionsMenu()
 			x = tonumber(inputs.portraitX:GetText()) or 0,
 			y = tonumber(inputs.portraitY:GetText()) or 0,
 		}
-		cfg.nameTextOffset = {
-			x = tonumber(nameTextX:GetText()) or 0,
-			y = tonumber(nameTextY:GetText()) or 0,
-		}
-		cfg.hideHealthBar = hideHealthCheck:GetChecked()
+                cfg.nameTextOffset = {
+                        x = tonumber(nameTextX:GetText()) or 0,
+                        y = tonumber(nameTextY:GetText()) or 0,
+                }
+                cfg.castBarOffset = {
+                        x = tonumber(castBarX:GetText()) or 0,
+                        y = tonumber(castBarY:GetText()) or 0,
+                }
+                cfg.castTextOffset = {
+                        x = tonumber(castTextX:GetText()) or 0,
+                        y = tonumber(castTextY:GetText()) or 0,
+                }
+                cfg.hideHealthBar = hideHealthCheck:GetChecked()
 		-- Move health text and portrait on the actual unit frame
 		local frame = RUF.frames[selectedTab]
 		if frame then
@@ -292,15 +328,23 @@ function RUF:CreateOptionsMenu()
 			frame.portrait2D:ClearAllPoints()
 			frame.portrait2D:SetPoint("LEFT", frame, "LEFT", cfg.portraitOffset.x, cfg.portraitOffset.y)
 		end
-		if frame.portraitContainer and cfg.portraitOffset then
-			frame.portraitContainer:ClearAllPoints()
-			frame.portraitContainer:SetPoint("LEFT", frame, "LEFT", cfg.portraitOffset.x, cfg.portraitOffset.y)
-		end
-		if frame.portraitContainer and cfg.portraitOffset then
-			frame.portraitContainer:ClearAllPoints()
-			frame.portraitContainer:SetPoint("LEFT", frame, "LEFT", cfg.portraitOffset.x, cfg.portraitOffset.y)
-		end
-		-- Resize unit frame and its health bar
+                if frame.portraitContainer and cfg.portraitOffset then
+                        frame.portraitContainer:ClearAllPoints()
+                        frame.portraitContainer:SetPoint("LEFT", frame, "LEFT", cfg.portraitOffset.x, cfg.portraitOffset.y)
+                end
+                if frame.portraitContainer and cfg.portraitOffset then
+                        frame.portraitContainer:ClearAllPoints()
+                        frame.portraitContainer:SetPoint("LEFT", frame, "LEFT", cfg.portraitOffset.x, cfg.portraitOffset.y)
+                end
+                if frame.castBarBG and cfg.castBarOffset then
+                        frame.castBarBG:ClearAllPoints()
+                        frame.castBarBG:SetPoint("TOP", frame.healthBarBG, "BOTTOM", cfg.castBarOffset.x, cfg.castBarOffset.y)
+                end
+                if frame.castText and cfg.castTextOffset then
+                        frame.castText:ClearAllPoints()
+                        frame.castText:SetPoint("CENTER", frame.castBarBG, "CENTER", cfg.castTextOffset.x, cfg.castTextOffset.y)
+                end
+                -- Resize unit frame and its health bar
 		if frame then
 			frame:SetSize(cfg.width, cfg.height)
 
@@ -308,9 +352,12 @@ function RUF:CreateOptionsMenu()
 				frame.healthBar:SetSize(cfg.width, cfg.height)
 			end
 
-			if frame.healthBarBG then
-				frame.healthBarBG:SetSize(cfg.width, cfg.height)
-			end
+                        if frame.healthBarBG then
+                                frame.healthBarBG:SetSize(cfg.width, cfg.height)
+                        end
+                        if frame.castBarBG then
+                                frame.castBarBG:SetSize(cfg.width, 16)
+                        end
 		end
 		if RUF.tempColor then
 			cfg.color = { r = RUF.tempColor.r, g = RUF.tempColor.g, b = RUF.tempColor.b }
@@ -355,12 +402,16 @@ function RUF:CreateOptionsMenu()
 	end)
 
 	-- Save refs and panel updater
-	inputs.healthTextX = healthTextX
-	inputs.healthTextY = healthTextY
-	inputs.portraitX = portraitX
-	inputs.portraitY = portraitY
-	inputs.nameTextX = nameTextX
-	inputs.nameTextY = nameTextY
+        inputs.healthTextX = healthTextX
+        inputs.healthTextY = healthTextY
+        inputs.portraitX = portraitX
+        inputs.portraitY = portraitY
+        inputs.nameTextX = nameTextX
+        inputs.nameTextY = nameTextY
+        inputs.castBarX = castBarX
+        inputs.castBarY = castBarY
+        inputs.castTextX = castTextX
+        inputs.castTextY = castTextY
 
 	RUF.options.inputs = inputs
 	RUF.options.checks = {
@@ -389,9 +440,15 @@ function RUF:CreateOptionsMenu()
 		hideHealthCheck:SetChecked(cfg.hideHealthBar)
 		inputs.healthTextX:SetText(cfg.healthTextOffset.x)
 		inputs.healthTextY:SetText(cfg.healthTextOffset.y)
-		inputs.portraitX:SetText(cfg.portraitOffset.x)
-		inputs.portraitY:SetText(cfg.portraitOffset.y)
-		useColorCheck:SetChecked(cfg.useCustomColor)
+                inputs.portraitX:SetText(cfg.portraitOffset.x)
+                inputs.portraitY:SetText(cfg.portraitOffset.y)
+                cfg.castBarOffset = cfg.castBarOffset or { x = 0, y = 0 }
+                cfg.castTextOffset = cfg.castTextOffset or { x = 0, y = 0 }
+                inputs.castBarX:SetText(cfg.castBarOffset.x)
+                inputs.castBarY:SetText(cfg.castBarOffset.y)
+                inputs.castTextX:SetText(cfg.castTextOffset.x)
+                inputs.castTextY:SetText(cfg.castTextOffset.y)
+                useColorCheck:SetChecked(cfg.useCustomColor)
 		showTextCheck:SetChecked(cfg.showHealthText)
 		colorSwatch:SetColorTexture(cfg.color.r, cfg.color.g, cfg.color.b)
 		RUF.tempColor = nil
