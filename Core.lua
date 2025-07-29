@@ -19,6 +19,91 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_HEALTH")
 eventFrame:RegisterEvent("UNIT_MAXHEALTH")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_START", "target")
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_STOP", "target")
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "target")
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "target")
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED", "target")
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", "target")
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_UPDATE", "target")
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", "target")
+
+local function CastBarOnUpdate(self)
+        local cd = self.castData
+        if not cd then
+                self:SetScript("OnUpdate", nil)
+                return
+        end
+        local now = GetTime()
+        if now >= cd.endTime then
+                self.castBarBG:Hide()
+                self.castBar:Hide()
+                self.castText:Hide()
+                self.castData = nil
+                self:SetScript("OnUpdate", nil)
+                return
+        end
+        local duration = cd.endTime - cd.startTime
+        local remaining = cd.endTime - now
+        local pct
+        if cd.isChannel then
+                pct = remaining / duration
+        else
+                pct = 1 - (remaining / duration)
+        end
+        self.castBar:SetWidth(self.castBarBG:GetWidth() * pct)
+        self.castText:SetText(string.format("%.1f", remaining))
+end
+
+local function StartCast(unit, isChannel)
+        local f = RUF.frames[unit]
+        if not f or not f.castBar then return end
+        local name, _, _, startTime, endTime
+        if isChannel then
+                name, _, _, startTime, endTime = UnitChannelInfo(unit)
+        else
+                name, _, _, startTime, endTime = UnitCastingInfo(unit)
+        end
+        if not name then return end
+        f.castData = {
+                startTime = startTime / 1000,
+                endTime = endTime / 1000,
+                isChannel = isChannel,
+        }
+        f.castBar:SetWidth(isChannel and f.castBarBG:GetWidth() or 0)
+        f.castBarBG:Show()
+        f.castBar:Show()
+        f.castText:Show()
+        f:SetScript("OnUpdate", CastBarOnUpdate)
+end
+
+local function StopCast(unit)
+        local f = RUF.frames[unit]
+        if not f or not f.castBar then return end
+        f.castBarBG:Hide()
+        f.castBar:Hide()
+        f.castText:Hide()
+        f.castData = nil
+        f:SetScript("OnUpdate", nil)
+end
+
+local function UpdateCastTimes(unit, isChannel)
+        local f = RUF.frames[unit]
+        if not f or not f.castData then return end
+        local name, _, _, startTime, endTime
+        if isChannel then
+                name, _, _, startTime, endTime = UnitChannelInfo(unit)
+        else
+                name, _, _, startTime, endTime = UnitCastingInfo(unit)
+        end
+        if not name then
+                StopCast(unit)
+                return
+        end
+        f.castData.startTime = startTime / 1000
+        f.castData.endTime = endTime / 1000
+        f.castData.isChannel = isChannel
+end
 
 -- Reusable health bar update logic
 local function UpdateUnitFrame(unit)
@@ -95,14 +180,30 @@ eventFrame:SetScript("OnEvent", function(_, event, unit)
 		UpdateUnitFrame("target")
 	end
 
-	if (event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH") and (unit == "target" or unit == "player") then
-		UpdateUnitFrame(unit)
-	elseif event == "PLAYER_TARGET_CHANGED" then
-		if not RUF.frames.target then
-			RUF:CreateTargetFrame()
-		end
-		UpdateUnitFrame("target")
-	end
+       if (event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH") and (unit == "target" or unit == "player") then
+               UpdateUnitFrame(unit)
+       elseif event == "PLAYER_TARGET_CHANGED" then
+               if not RUF.frames.target then
+                       RUF:CreateTargetFrame()
+               end
+               UpdateUnitFrame("target")
+       elseif event == "UNIT_SPELLCAST_START" and unit == "target" then
+               StartCast("target", false)
+       elseif event == "UNIT_SPELLCAST_STOP" and unit == "target" then
+               StopCast("target")
+       elseif event == "UNIT_SPELLCAST_INTERRUPTED" and unit == "target" then
+               StopCast("target")
+       elseif event == "UNIT_SPELLCAST_FAILED" and unit == "target" then
+               StopCast("target")
+       elseif event == "UNIT_SPELLCAST_DELAYED" and unit == "target" then
+               UpdateCastTimes("target", false)
+       elseif event == "UNIT_SPELLCAST_CHANNEL_START" and unit == "target" then
+               StartCast("target", true)
+       elseif event == "UNIT_SPELLCAST_CHANNEL_UPDATE" and unit == "target" then
+               UpdateCastTimes("target", true)
+       elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" and unit == "target" then
+               StopCast("target")
+       end
 end)
 
 RUF.UpdateUnitFrame = UpdateUnitFrame

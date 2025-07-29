@@ -32,11 +32,35 @@ function RUF:CreateTargetFrame()
     nameText:SetPoint("BOTTOM", healthBarBG, "TOP", nameOffset.x, nameOffset.y)
     nameText:SetText(UnitName("target") or "Target")
 
+    -- Cast bar
+    local castOffset = cfg.castBarOffset or { x = 0, y = -10 }
+    local castBarBG = CreateFrame("Frame", nil, f)
+    castBarBG:SetSize(cfg.width, 16)
+    castBarBG:SetPoint("TOP", healthBarBG, "BOTTOM", castOffset.x, castOffset.y)
+    local castBGTex = castBarBG:CreateTexture(nil, "BACKGROUND")
+    castBGTex:SetAllPoints()
+    castBGTex:SetColorTexture(0, 0, 0, 0.5)
+
+    local castBar = castBarBG:CreateTexture(nil, "ARTWORK")
+    castBar:SetPoint("LEFT", castBarBG, "LEFT", 0, 0)
+    castBar:SetPoint("TOP", castBarBG, "TOP", 0, 0)
+    castBar:SetPoint("BOTTOM", castBarBG, "BOTTOM", 0, 0)
+    castBar:SetColorTexture(1, 0.7, 0)
+
+    local castText = castBarBG:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    local castTextOffset = cfg.castTextOffset or { x = 0, y = 0 }
+    castText:SetPoint("CENTER", castBarBG, "CENTER", castTextOffset.x, castTextOffset.y)
+    castText:SetText("")
+    castBarBG:Hide()
+
     -- Store refs
     f.healthBarBG = healthBarBG
     f.healthBar   = healthBar
     f.healthText  = healthText
     f.nameText    = nameText
+    f.castBarBG   = castBarBG
+    f.castBar     = castBar
+    f.castText    = castText
 
     -- Show/hide health bar
     if cfg.hideHealthBar then
