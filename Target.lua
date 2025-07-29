@@ -50,6 +50,7 @@ function RUF:CreateTargetFrame()
 
     -- 2D Portrait Frame
     local portrait2DFrame = CreateFrame("Button", nil, f, "SecureUnitButtonTemplate")
+    portrait2DFrame.unit = "target"
     portrait2DFrame:SetSize(64, 64)
     portrait2DFrame:SetPoint("LEFT", f, poffset.x, poffset.y)
     portrait2DFrame:SetAttribute("unit", "target")
@@ -59,8 +60,7 @@ function RUF:CreateTargetFrame()
     portrait2DFrame:RegisterForClicks("AnyUp")
     -- Safe tooltip handling
     portrait2DFrame:SetScript("OnEnter", function(self)
-        local unit = self:GetAttribute("unit")
-        if unit and not cfg.hideHealthBar and UnitExists(unit) then
+        if not cfg.hideHealthBar and UnitExists(self.unit) then
             UnitFrame_OnEnter(self)
         end
     end)
@@ -77,6 +77,7 @@ function RUF:CreateTargetFrame()
 
     -- 3D Portrait Container
     local portraitContainer = CreateFrame("Button", nil, f, "SecureUnitButtonTemplate,BackdropTemplate")
+    portraitContainer.unit = "target"
     portraitContainer:SetSize(80, 80)
     portraitContainer:SetPoint("LEFT", f, poffset.x, poffset.y)
     portraitContainer:SetAttribute("unit", "target")
@@ -86,8 +87,7 @@ function RUF:CreateTargetFrame()
     portraitContainer:RegisterForClicks("AnyUp")
     -- Safe tooltip handling
     portraitContainer:SetScript("OnEnter", function(self)
-        local unit = self:GetAttribute("unit")
-        if unit and not cfg.hideHealthBar and UnitExists(unit) then
+        if not cfg.hideHealthBar and UnitExists(self.unit) then
             UnitFrame_OnEnter(self)
         end
     end)
