@@ -181,9 +181,9 @@ function RUF:CreateTargetFrame()
     local isHidden = cfg.hideHealthBar
     f:EnableMouse(not isHidden)
     portrait2DFrame:EnableMouse(not isHidden)
-    portraitContainer:EnableMouse(not isHidden)
+        portraitContainer:EnableMouse(not isHidden)
 
-    if not isHidden then
+        if not isHidden then
         f:RegisterForClicks("AnyUp")
         portrait2DFrame:RegisterForClicks("AnyUp")
         portraitContainer:RegisterForClicks("AnyUp")
@@ -192,5 +192,10 @@ function RUF:CreateTargetFrame()
         f:RegisterForClicks()
         portrait2DFrame:RegisterForClicks()
         portraitContainer:RegisterForClicks()
+    end
+
+    if cfg.hideInCombat and InCombatLockdown() then
+        f:Hide()
+        UnregisterUnitWatch(f)
     end
 end
