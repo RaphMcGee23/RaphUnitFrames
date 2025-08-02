@@ -19,6 +19,8 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_HEALTH")
 eventFrame:RegisterEvent("UNIT_MAXHEALTH")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_START", "target")
 eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_STOP", "target")
 eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "target")
@@ -203,6 +205,24 @@ eventFrame:SetScript("OnEvent", function(_, event, unit)
                UpdateCastTimes("target", true)
        elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" and unit == "target" then
                StopCast("target")
+       elseif event == "PLAYER_REGEN_DISABLED" then
+               if RUFDB.player and RUFDB.player.hideInCombat and RUF.frames.player then
+                       RUF.frames.player:Hide()
+               end
+               if RUFDB.target and RUFDB.target.hideInCombat and RUF.frames.target then
+                       RUF.frames.target:Hide()
+                       UnregisterUnitWatch(RUF.frames.target)
+               end
+       elseif event == "PLAYER_REGEN_ENABLED" then
+               if RUFDB.player and RUFDB.player.hideInCombat and RUF.frames.player then
+                       RUF.frames.player:Show()
+                       UpdateUnitFrame("player")
+               end
+               if RUFDB.target and RUFDB.target.hideInCombat and RUF.frames.target then
+                       RUF.frames.target:Show()
+                       RegisterUnitWatch(RUF.frames.target)
+                       UpdateUnitFrame("target")
+               end
        end
 end)
 

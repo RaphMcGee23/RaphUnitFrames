@@ -15,23 +15,25 @@ local defaultConfig = {
 		color = { r = 1, g = 1, b = 1 },
 		showHealthText = true,
 		use2DPortrait = true,
-		healthTextOffset = { x = 0, y = 0 },
-		portraitOffset = { x = 0, y = 0 },
-		hideHealthBar = false,
-		nameTextOffset = { x = 0, y = 0 },
-	},
-	target = {
-		x = 250,
-		y = -200,
+                healthTextOffset = { x = 0, y = 0 },
+                portraitOffset = { x = 0, y = 0 },
+                hideHealthBar = false,
+                hideInCombat = false,
+                nameTextOffset = { x = 0, y = 0 },
+        },
+        target = {
+                x = 250,
+                y = -200,
 		width = 200,
 		height = 50,
 		useCustomColor = false,
 		color = { r = 1, g = 1, b = 1 },
 		showHealthText = true,
 		use2DPortrait = true,
-		healthTextOffset = { x = 0, y = 0 },
+                healthTextOffset = { x = 0, y = 0 },
                 portraitOffset = { x = 0, y = 0 },
                 hideHealthBar = false,
+                hideInCombat = false,
                 nameTextOffset = { x = 0, y = 0 },
                 castBarOffset = { x = 0, y = -10 },
                 castTextOffset = { x = 0, y = 0 },
@@ -125,17 +127,24 @@ function RUF:CreateOptionsMenu()
 	use2DCheck.text = use2DCheck:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	use2DCheck.text:SetPoint("LEFT", use2DCheck, "RIGHT", 5, 0)
 	use2DCheck.text:SetText("Use 2D Portrait")
-	local useColorCheck = CreateFrame("CheckButton", nil, f, "UICheckButtonTemplate")
-	useColorCheck:SetPoint("TOPLEFT", f, "TOPLEFT", 140, -190)
-	useColorCheck.text = useColorCheck:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	useColorCheck.text:SetPoint("LEFT", useColorCheck, "RIGHT", 5, 0)
-	useColorCheck.text:SetText("Use Custom Color")
-	-- Hide health bar
-	local hideHealthCheck = CreateFrame("CheckButton", nil, f, "UICheckButtonTemplate")
-	hideHealthCheck:SetPoint("TOPLEFT", f, "TOPLEFT", 140, -335)
-	hideHealthCheck.text = hideHealthCheck:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	hideHealthCheck.text:SetPoint("LEFT", hideHealthCheck, "RIGHT", 5, 0)
-	hideHealthCheck.text:SetText("Hide Health Bar")
+        local useColorCheck = CreateFrame("CheckButton", nil, f, "UICheckButtonTemplate")
+        useColorCheck:SetPoint("TOPLEFT", f, "TOPLEFT", 140, -190)
+        useColorCheck.text = useColorCheck:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        useColorCheck.text:SetPoint("LEFT", useColorCheck, "RIGHT", 5, 0)
+        useColorCheck.text:SetText("Use Custom Color")
+        -- Hide health bar
+        local hideHealthCheck = CreateFrame("CheckButton", nil, f, "UICheckButtonTemplate")
+        hideHealthCheck:SetPoint("TOPLEFT", f, "TOPLEFT", 140, -335)
+        hideHealthCheck.text = hideHealthCheck:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        hideHealthCheck.text:SetPoint("LEFT", hideHealthCheck, "RIGHT", 5, 0)
+        hideHealthCheck.text:SetText("Hide Health Bar")
+
+        -- Hide entire frame in combat
+        local hideCombatCheck = CreateFrame("CheckButton", nil, f, "UICheckButtonTemplate")
+        hideCombatCheck:SetPoint("TOPLEFT", f, "TOPLEFT", 140, -365)
+        hideCombatCheck.text = hideCombatCheck:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        hideCombatCheck.text:SetPoint("LEFT", hideCombatCheck, "RIGHT", 5, 0)
+        hideCombatCheck.text:SetText("Hide In Combat")
 
 	local showTextCheck = CreateFrame("CheckButton", nil, f, "UICheckButtonTemplate")
 	showTextCheck:SetPoint("TOPLEFT", f, "TOPLEFT", 140, -160)
@@ -265,8 +274,9 @@ function RUF:CreateOptionsMenu()
                         y = tonumber(castTextY:GetText()) or 0,
                 }
                 cfg.hideHealthBar = hideHealthCheck:GetChecked()
-		-- Move health text and portrait on the actual unit frame
-		local frame = RUF.frames[selectedTab]
+                cfg.hideInCombat = hideCombatCheck:GetChecked()
+                -- Move health text and portrait on the actual unit frame
+                local frame = RUF.frames[selectedTab]
 		if frame then
 			if frame.healthText and frame.healthBarBG and cfg.healthTextOffset then
 				frame.healthText:ClearAllPoints()
@@ -288,11 +298,11 @@ function RUF:CreateOptionsMenu()
 			frame:ClearAllPoints()
 			frame:SetPoint("CENTER", UIParent, "CENTER", cfg.x, cfg.y)
 		end
-		if frame and frame.healthBar then
-			if cfg.hideHealthBar then
-				frame.healthBar:Hide()
-				frame.healthBarBG:Hide()
-				frame.healthText:Hide()
+                if frame and frame.healthBar then
+                        if cfg.hideHealthBar then
+                                frame.healthBar:Hide()
+                                frame.healthBarBG:Hide()
+                                frame.healthText:Hide()
 
 				-- disable clicks
                                 frame:EnableMouse(false)
@@ -314,15 +324,29 @@ function RUF:CreateOptionsMenu()
 				frame.portrait2DFrame:EnableMouse(true)
 				frame.portrait2DFrame:RegisterForClicks("AnyUp")
 
-				frame.portraitContainer:EnableMouse(true)
-				frame.portraitContainer:RegisterForClicks("AnyUp")
-			end
-		end
-		-- Move name
-		if frame.nameText and cfg.nameTextOffset then
-			frame.nameText:ClearAllPoints()
-			frame.nameText:SetPoint("BOTTOM", frame.healthBarBG, "TOP", cfg.nameTextOffset.x, cfg.nameTextOffset.y)
-		end
+                                frame.portraitContainer:EnableMouse(true)
+                                frame.portraitContainer:RegisterForClicks("AnyUp")
+                        end
+                end
+                -- Hide or show entire frame based on combat option
+                if frame then
+                        if cfg.hideInCombat and InCombatLockdown() then
+                                frame:Hide()
+                                if selectedTab == "target" then
+                                        UnregisterUnitWatch(frame)
+                                end
+                        else
+                                frame:Show()
+                                if selectedTab == "target" then
+                                        RegisterUnitWatch(frame)
+                                end
+                        end
+                end
+                -- Move name
+                if frame.nameText and cfg.nameTextOffset then
+                        frame.nameText:ClearAllPoints()
+                        frame.nameText:SetPoint("BOTTOM", frame.healthBarBG, "TOP", cfg.nameTextOffset.x, cfg.nameTextOffset.y)
+                end
 		-- Move portrait
 		if frame.portrait2D and cfg.portraitOffset then
 			frame.portrait2D:ClearAllPoints()
@@ -436,10 +460,11 @@ function RUF:CreateOptionsMenu()
 		inputs.x:SetText(cfg.x)
 		inputs.y:SetText(cfg.y)
 		inputs.width:SetText(cfg.width)
-		inputs.height:SetText(cfg.height)
-		hideHealthCheck:SetChecked(cfg.hideHealthBar)
-		inputs.healthTextX:SetText(cfg.healthTextOffset.x)
-		inputs.healthTextY:SetText(cfg.healthTextOffset.y)
+                inputs.height:SetText(cfg.height)
+                hideHealthCheck:SetChecked(cfg.hideHealthBar)
+                hideCombatCheck:SetChecked(cfg.hideInCombat)
+                inputs.healthTextX:SetText(cfg.healthTextOffset.x)
+                inputs.healthTextY:SetText(cfg.healthTextOffset.y)
                 inputs.portraitX:SetText(cfg.portraitOffset.x)
                 inputs.portraitY:SetText(cfg.portraitOffset.y)
                 cfg.castBarOffset = cfg.castBarOffset or { x = 0, y = 0 }

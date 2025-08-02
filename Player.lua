@@ -181,9 +181,13 @@ function RUF:CreatePlayerFrame()
 	f:EnableMouse(not isHidden)
 
 	-- only register click handlers if the health bar is shown
-	if not isHidden then
-		f:RegisterForClicks("AnyUp")
-		portrait2DFrame:RegisterForClicks("AnyUp")
-		portraitContainer:RegisterForClicks("AnyUp")
-	end
+        if not isHidden then
+                f:RegisterForClicks("AnyUp")
+                portrait2DFrame:RegisterForClicks("AnyUp")
+                portraitContainer:RegisterForClicks("AnyUp")
+        end
+
+        if cfg.hideInCombat and InCombatLockdown() then
+                f:Hide()
+        end
 end
