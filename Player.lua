@@ -117,17 +117,7 @@ function RUF:CreatePlayerFrame()
 	f.portrait3D = portrait3D
 	f.portraitContainer = portraitContainer
 
-	-- enforce click enable/disable based on hideHealthBar config
-	if cfg.hideHealthBar then
-		-- only disable clicks on the main health‑bar frame
-		f:EnableMouse(false)
-	else
-		-- restore clicks
-		f:EnableMouse(true)
-		f:RegisterForClicks("AnyUp")
-	end
-
-	-- Display logic
+        -- Display logic
 	if cfg.use2DPortrait then
 		SetPortraitTexture(portrait2D, "player")
 		portrait2DFrame:Show()
@@ -174,17 +164,24 @@ function RUF:CreatePlayerFrame()
 	f.menu = function()
 		ToggleDropDownMenu(1, nil, PlayerFrameDropDown, f, 0, 0)
 	end
-	-- now do one unified mouse/click toggle:
-	local isHidden = cfg.hideHealthBar
+        -- now do one unified mouse/click toggle:
+        local isHidden = cfg.hideHealthBar
 
-	-- enable or disable mouse on the main frame
-	f:EnableMouse(not isHidden)
+        -- keep parent frame mouse-enabled so child portrait frames can receive clicks
+        f:EnableMouse(true)
 
-	-- only register click handlers if the health bar is shown
+        -- portrait frames should always handle clicks regardless of health bar visibility
+        portrait2DFrame:EnableMouse(true)
+        portrait2DFrame:RegisterForClicks("AnyUp")
+        portraitContainer:EnableMouse(true)
+        portraitContainer:RegisterForClicks("AnyUp")
+
+        -- register main frame clicks only when health bar is shown
         if not isHidden then
                 f:RegisterForClicks("AnyUp")
-                portrait2DFrame:RegisterForClicks("AnyUp")
-                portraitContainer:RegisterForClicks("AnyUp")
+        else
+                -- clear click registrations when the health bar is hidden
+                f:RegisterForClicks()
         end
 
         if cfg.hideInCombat and InCombatLockdown() then

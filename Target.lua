@@ -179,19 +179,22 @@ function RUF:CreateTargetFrame()
 
     -- Unified click toggle
     local isHidden = cfg.hideHealthBar
-    f:EnableMouse(not isHidden)
-    portrait2DFrame:EnableMouse(not isHidden)
-        portraitContainer:EnableMouse(not isHidden)
 
-        if not isHidden then
+    -- keep parent frame mouse-enabled so portrait children remain clickable
+    f:EnableMouse(true)
+
+    -- portraits should always respond to clicks
+    portrait2DFrame:EnableMouse(true)
+    portrait2DFrame:RegisterForClicks("AnyUp")
+    portraitContainer:EnableMouse(true)
+    portraitContainer:RegisterForClicks("AnyUp")
+
+    -- only register the main frame for clicks when the health bar is visible
+    if not isHidden then
         f:RegisterForClicks("AnyUp")
-        portrait2DFrame:RegisterForClicks("AnyUp")
-        portraitContainer:RegisterForClicks("AnyUp")
     else
-        -- Clear click registrations when hidden to avoid API errors
+        -- clear click registrations when hidden to avoid API errors
         f:RegisterForClicks()
-        portrait2DFrame:RegisterForClicks()
-        portraitContainer:RegisterForClicks()
     end
 
     if cfg.hideInCombat and InCombatLockdown() then
